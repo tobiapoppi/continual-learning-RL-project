@@ -22,5 +22,10 @@
    - go to `/avalanche/training/plugins/ewc.py` and substitute line __76__ and __116__ with this line: `exp_counter = strategy.training_exp_counter`
 7. install avalanche-rl
    - `pip install git+https://github.com/ContinualAI/avalanche-rl.git`
-   
-   
+  
+
+### To test if your env is working fine just activate the conda env and run:
+
+`python ewc_avalanche_load.py`
+
+You should see the emulator opening the pong game failing miserably (but you should at lease see it playing). 
