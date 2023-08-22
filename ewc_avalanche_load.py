@@ -50,7 +50,7 @@ if __name__ == "__main__":
         eval_envs=['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'])
 
     # let's instatiate an external replay memory
-    memory_size = 100000
+    memory_size = 10000
     memory = ReplayMemory(size=memory_size, n_envs=n_envs)
     ewc_plugin = EWCRL(400., memory, mode='separate',
                        start_ewc_after_experience=1)
@@ -102,26 +102,15 @@ if __name__ == "__main__":
         plugins=[ewc_plugin, HalveEps()],
         # external replay memory is automatically filled with initial size and
         # reset on new experience
-        initial_replay_memory=memory, replay_memory_init_size=1000,
+        initial_replay_memory=memory, replay_memory_init_size=4000,
         double_dqn=True,
         target_net_update_interval=1000, eval_every=int(5e4),
         eval_episodes=4, evaluator=evaluator, device=device)
 
-    # TRAINING LOOP
-    print('Starting experiment...')
-    results = []
-    for experience in scenario.train_stream:
-        print("Start of experience ", experience.current_experience)
-        print("Current Env ", experience.env)
+    model.load_state_dict(torch.load('pong-breakout.pt')['model'])
+    optimizer.load_state_dict(torch.load('pong-breakout.pt')['optim'])
 
-        strategy.train(experience, [scenario.eval_stream])
-        # print('Training completed')
-        # save model and optimizer
-        torch.save(
-            {'model': model.state_dict(),
-             'optim': optimizer.state_dict()},
-            'pong-breakout.pt')
-
+    
 
 
     def test_model(model, env, episodes=100):
@@ -136,7 +125,7 @@ if __name__ == "__main__":
                 state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)  # Convert to [1, 4, 210, 160]
                 
                 # No need to check the length of state; it should be consistent after wrapping
-                action = model(state_tensor, 0)[0].argmax().item()
+                action = model(state_tensor, 1)[0].argmax().item()
 
                 next_state, reward, done, _ = env.step(action)
                 score += 1
@@ -145,7 +134,7 @@ if __name__ == "__main__":
         return np.mean(scores)
 
     # Wrap the environment with preprocessing and frame stacking
-    env = gym.make('BreakoutNoFrameskip-v4', render_mode='human')
+    env = gym.make('PongNoFrameskip-v4', render_mode='human')
     env = AtariPreprocessing(env)
     env = FrameStack(env, num_stack=4)
 
