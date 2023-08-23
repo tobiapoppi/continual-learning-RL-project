@@ -5,6 +5,7 @@
    - `conda create --name rl python=3.8`
    - `conda activate rl`
 2. if you are on Windows AND you have a gpu and cuda installed (it's not mandatory!):
+
    for cuda <=11.7 (I have 11.2 and it's working fine):
    - `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117`
      
