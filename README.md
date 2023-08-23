@@ -4,14 +4,13 @@
 1. create a new conda env
    - `conda create --name rl python=3.8`
    - `conda activate rl`
-2. if you have a gpu and cuda installed (it's not mandatory!):
-
+2. if you are on Windows AND you have a gpu and cuda installed (it's not mandatory!):
    for cuda <=11.7 (I have 11.2 and it's working fine):
    - `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117`
      
    for cuda 11.8:
    - `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
-4. if you don't have a gpu or cuda installed:
+4. if you don't have a gpu/cuda installed OR you are on Linux:
    - `pip install torch torchvision`
 5. install other packets:
    - `pip install ray gym[atari]==0.23.1 gym[accept-rom-license]==0.23.1 opencv-python atari-py pygame numpy`
