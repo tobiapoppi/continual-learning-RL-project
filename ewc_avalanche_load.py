@@ -110,10 +110,14 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load('pong-breakout.pt')['model'])
     optimizer.load_state_dict(torch.load('pong-breakout.pt')['optim'])
 
+    def map_action(action, action_mapping):
+        return action_mapping.get(action, action)
     
 
-
     def test_model(model, env, episodes=100):
+
+        action_mapping={1: 2, 2: 3}
+
         scores = []
         for _ in range(episodes):
             time.sleep(0.5)
@@ -126,9 +130,10 @@ if __name__ == "__main__":
                 
                 # No need to check the length of state; it should be consistent after wrapping
                 action = model(state_tensor, 1)[0].argmax().item()
+                mapped_action = map_action(action, action_mapping)
 
-                next_state, reward, done, _ = env.step(action)
-                score += 1
+                next_state, reward, done, _ = env.step(mapped_action)
+                score += reward
                 state = next_state
             scores.append(score)
         return np.mean(scores)

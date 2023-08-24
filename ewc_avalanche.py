@@ -46,11 +46,11 @@ if __name__ == "__main__":
         ['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'],
         n_parallel_envs=n_envs, frame_stacking=True,
         normalize_observations=True, terminal_on_life_loss=True,
-        n_experiences=6, extra_wrappers=[action_wrapper_class],
+        n_experiences=4, extra_wrappers=[action_wrapper_class],
         eval_envs=['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'])
 
     # let's instatiate an external replay memory
-    memory_size = 100000
+    memory_size = 10000
     memory = ReplayMemory(size=memory_size, n_envs=n_envs)
     ewc_plugin = EWCRL(400., memory, mode='separate',
                        start_ewc_after_experience=1)
@@ -94,15 +94,13 @@ if __name__ == "__main__":
     # the first two are longer (1e5 steps) the rest are shorter (3e4 steps)
     strategy = DQNStrategy(
         model, optimizer,
-        # per_experience_steps=[Timestep(int(1e5)), Timestep(int(1e5))] + 
-        # [Timestep(int(3e4)), Timestep(int(3e4))] * 2,
-        per_experience_steps=[Timestep(int(1e2)), Timestep(int(1e2))],
-        batch_size=32, exploration_fraction=.15,
+        per_experience_steps=[Timestep(int(5e2)),
+                              Timestep(int(5e2))], batch_size=64, exploration_fraction=.15,
         final_epsilon=.01, max_steps_per_rollout=4,
         plugins=[ewc_plugin, HalveEps()],
         # external replay memory is automatically filled with initial size and
         # reset on new experience
-        initial_replay_memory=memory, replay_memory_init_size=1000,
+        initial_replay_memory=memory, replay_memory_init_size=4000,
         double_dqn=True,
         target_net_update_interval=1000, eval_every=int(5e4),
         eval_episodes=4, evaluator=evaluator, device=device)
@@ -145,11 +143,11 @@ if __name__ == "__main__":
         return np.mean(scores)
 
     # Wrap the environment with preprocessing and frame stacking
-    env = gym.make('BreakoutNoFrameskip-v4', render_mode='human')
-    env = AtariPreprocessing(env)
-    env = FrameStack(env, num_stack=4)
+    #env = gym.make('BreakoutNoFrameskip-v4', render_mode='human')
+    #env = AtariPreprocessing(env)
+    #env = FrameStack(env, num_stack=4)
 
-    test_model(model, env)
+    #test_model(model, env)
     
 
 
