@@ -50,9 +50,9 @@ if __name__ == "__main__":
         eval_envs=['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'])
 
     # let's instatiate an external replay memory
-    memory_size = 10000
+    memory_size = 20000
     memory = ReplayMemory(size=memory_size, n_envs=n_envs)
-    ewc_plugin = EWCRL(400., memory, mode='separate',
+    ewc_plugin = EWCRL(150., memory, mode='separate',
                        start_ewc_after_experience=1)
 
     # log to tensorboard
@@ -94,8 +94,8 @@ if __name__ == "__main__":
     # the first two are longer (1e5 steps) the rest are shorter (3e4 steps)
     strategy = DQNStrategy(
         model, optimizer,
-        per_experience_steps=[Timestep(int(5e2)),
-                              Timestep(int(5e2))], batch_size=64, exploration_fraction=.15,
+        per_experience_steps=[Timestep(int(1e5)),
+                              Timestep(int(1e5))], batch_size=64, exploration_fraction=.15,
         final_epsilon=.01, max_steps_per_rollout=4,
         plugins=[ewc_plugin, HalveEps()],
         # external replay memory is automatically filled with initial size and

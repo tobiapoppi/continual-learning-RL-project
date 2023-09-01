@@ -12,7 +12,7 @@ from avalanche_rl.training.strategies.buffers import ReplayMemory
 from avalanche_rl.training.plugins.rl_plugins import RLEvaluationPlugin
 from avalanche_rl.training.strategies.dqn import DQNStrategy, default_dqn_logger
 from avalanche_rl.training.strategies.env_wrappers \
-    import ReducedActionSpaceWrapper
+    import ReducedActionSpaceWrapper, FrameStackingWrapper
 from avalanche_rl.benchmarks.rl_benchmark_generators \
     import atari_benchmark_generator
 from avalanche_rl.training.plugins.ewc import EWCRL
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # let's instatiate an external replay memory
     memory_size = 10000
     memory = ReplayMemory(size=memory_size, n_envs=n_envs)
-    ewc_plugin = EWCRL(400., memory, mode='separate',
+    ewc_plugin = EWCRL(150., memory, mode='separate',
                        start_ewc_after_experience=1)
 
     # log to tensorboard
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 #    # Wrap the environment with preprocessing and frame stacking
 #    env = gym.make('PongNoFrameskip-v4', render_mode='human')
 #    env = AtariPreprocessing(env)
-#    env = FrameStack(env, num_stack=4)
+#    env = FrameStackingWrapper(env)
 #
 #    test_model(model, env)
 #    
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 # ... (tutto il tuo codice precedente rimane invariato fino a questo punto)
 
     # Ottenere l'ambiente di test per Pong dallo scenario
-    test_env = scenario.test_envs[1]  # Assumendo che Pong sia il secondo gioco nella lista
+    #test_env = scenario.test_envs[1]  # Assumendo che Pong sia il secondo gioco nella lista
 
     # Usa test_env al posto di env nella tua funzione test_model
     def test_model(model, env, episodes=100):
@@ -174,4 +174,9 @@ if __name__ == "__main__":
         return np.mean(scores)
 
     # Ora chiama la funzione test_model usando test_env
-    test_model(model, test_env)
+    env = gym.make('PongNoFrameskip-v4', render_mode='human')
+    env = AtariPreprocessing(env)
+    env = FrameStackingWrapper(env)
+#
+#    test_model(model, env)
+    test_model(model, env)
