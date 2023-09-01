@@ -114,10 +114,49 @@ if __name__ == "__main__":
         return action_mapping.get(action, action)
     
 
+#    def test_model(model, env, episodes=100):
+#
+#        action_mapping={1: 2, 2: 3}
+#
+#        scores = []
+#        for _ in range(episodes):
+#            time.sleep(0.5)
+#            state = env.reset()
+#            done = False
+#            score = 0
+#            while not done:
+#                # Assuming state shape is [210, 160, 4] after preprocessing and stacking
+#                state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)  # Convert to [1, 4, 210, 160]
+#                
+#                # No need to check the length of state; it should be consistent after wrapping
+#                action = model(state_tensor, 1)[0].argmax().item()
+#                mapped_action = map_action(action, action_mapping)
+#
+#                next_state, reward, done, _ = env.step(mapped_action)
+#                score += reward
+#                state = next_state
+#            scores.append(score)
+#        return np.mean(scores)
+#
+#    # Wrap the environment with preprocessing and frame stacking
+#    env = gym.make('PongNoFrameskip-v4', render_mode='human')
+#    env = AtariPreprocessing(env)
+#    env = FrameStack(env, num_stack=4)
+#
+#    test_model(model, env)
+#    
+
+
+
+
+# ... (tutto il tuo codice precedente rimane invariato fino a questo punto)
+
+    # Ottenere l'ambiente di test per Pong dallo scenario
+    test_env = scenario.test_envs[1]  # Assumendo che Pong sia il secondo gioco nella lista
+
+    # Usa test_env al posto di env nella tua funzione test_model
     def test_model(model, env, episodes=100):
-
         action_mapping={1: 2, 2: 3}
-
         scores = []
         for _ in range(episodes):
             time.sleep(0.5)
@@ -125,25 +164,14 @@ if __name__ == "__main__":
             done = False
             score = 0
             while not done:
-                # Assuming state shape is [210, 160, 4] after preprocessing and stacking
                 state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)  # Convert to [1, 4, 210, 160]
-                
-                # No need to check the length of state; it should be consistent after wrapping
                 action = model(state_tensor, 1)[0].argmax().item()
                 mapped_action = map_action(action, action_mapping)
-
                 next_state, reward, done, _ = env.step(mapped_action)
                 score += reward
                 state = next_state
             scores.append(score)
         return np.mean(scores)
 
-    # Wrap the environment with preprocessing and frame stacking
-    env = gym.make('PongNoFrameskip-v4', render_mode='human')
-    env = AtariPreprocessing(env)
-    env = FrameStack(env, num_stack=4)
-
-    test_model(model, env)
-    
-
-
+    # Ora chiama la funzione test_model usando test_env
+    test_model(model, test_env)
