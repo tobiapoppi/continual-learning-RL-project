@@ -43,17 +43,19 @@ if __name__ == "__main__":
     n_envs = 1
     # frameskipping is done in wrapper
     scenario = atari_benchmark_generator(
-        ['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'],
+        #['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'],
+        ['PongNoFrameskip-v4'],
         n_parallel_envs=n_envs, frame_stacking=True,
         normalize_observations=True, terminal_on_life_loss=True,
-        n_experiences=6, 
-        #extra_wrappers=[action_wrapper_class],
-        eval_envs=['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'])
+        n_experiences=3, 
+        extra_wrappers=[action_wrapper_class],
+        #eval_envs=['BreakoutNoFrameskip-v4', 'PongNoFrameskip-v4'])
+        eval_envs=['PongNoFrameskip-v4'])
 
     # let's instatiate an external replay memory
     memory_size = 10000
     memory = ReplayMemory(size=memory_size, n_envs=n_envs)
-    ewc_plugin = EWCRL(300., memory, mode='separate',
+    ewc_plugin = EWCRL(400., memory, mode='separate',
                        start_ewc_after_experience=1)
 
     # log to tensorboard
@@ -71,9 +73,9 @@ if __name__ == "__main__":
     # here we'll have task-specific biases & gains per layer
     # (2 since we're learning 2 games)
     model = EWCConvDeepQN(4, (84, 84), 
-                          #action_space,
-                          6, 
-                          n_tasks=2, bias=True)
+                          action_space,
+                          #4, 
+                          n_tasks=1, bias=True)
     print('Model', model)
     optimizer = Adam(model.parameters(), lr=1e-4)
 
@@ -98,18 +100,18 @@ if __name__ == "__main__":
     # the first two are longer (1e5 steps) the rest are shorter (3e4 steps)
     strategy = DQNStrategy(
         model, optimizer,
-        per_experience_steps=[Timestep(int(1e4)), Timestep(int(1e4))],
+        per_experience_steps=[Timestep(int(1e4))],
         #per_experience_steps=[Timestep(int(2e3)),
         #                      Timestep(int(2e3))],
-        batch_size=64, exploration_fraction=.15,
+        batch_size=128, exploration_fraction=.15,
         final_epsilon=.01, max_steps_per_rollout=4,
         plugins=[ewc_plugin, HalveEps()],
         # external replay memory is automatically filled with initial size and
         # reset on new experience
         initial_replay_memory=memory, replay_memory_init_size=4000,
         double_dqn=True,
-        target_net_update_interval=1000, eval_every=int(5e4),
-        eval_episodes=4, evaluator=evaluator, device=device)
+        target_net_update_interval=1000, eval_every=int(5e3),
+        eval_episodes=6, evaluator=evaluator, device=device)
 
     # TRAINING LOOP
     print('Starting experiment...')
@@ -124,7 +126,7 @@ if __name__ == "__main__":
         torch.save(
             {'model': model.state_dict(),
              'optim': optimizer.state_dict()},
-            'pong-breakout.pt')
+            'pong.pt')
 
 
 
