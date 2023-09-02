@@ -1,18 +1,18 @@
 import time 
-# for using arrays
 import numpy as np
-# for creating named tuples
 import collections
-
-#import gym
+import wrappers
+import dqn
 import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from tensorboardX import SummaryWriter
+import gym
 
-DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
+DEFAULT_ENV_NAME = "SpaceInvadersNoFrameskip-v4"
 # Max mean reward to reach
-MEAN_REWARD_BOUND = 21
+MEAN_REWARD_BOUND = 30
 
 # gamma value for discount
 GAMMA = 0.9
@@ -128,14 +128,14 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-env = wrappers.make_env("PongNoFrameskip-v4")
+env = wrappers.make_env("SpaceInvadersNoFrameskip-v4")
 #env = gym.wrappers.Monitor(env, director="PongNoFrameskip-v4", force=True)
 
-net = dqn_model.DQN(env.observation_space.shape,
+net = dqn.DQN(env.observation_space.shape,
                     env.action_space.n).to(device)
-tgt_net = dqn_model.DQN(env.observation_space.shape,
+tgt_net = dqn.DQN(env.observation_space.shape,
                         env.action_space.n).to(device)
-writer = SummaryWriter(comment="-PongNoFrameskip-v4")
+writer = SummaryWriter(comment="-SpaceInvadersNoFrameskip-v4")
 print(net)
 
 
@@ -174,7 +174,7 @@ while True:
         writer.add_scalar("reward", reward, frame_idx)
         if best_m_reward is None or best_m_reward < m_reward:
             torch.save(net.state_dict(), os.path.join(
-                "PongNoFrameskip_state", ("PongNoFrameskip-v4-best_%.0f.dat" % m_reward)))
+                "SpaceInvadersNoFrameskip_state", ("SpaceInvadersNoFrameskip-v4-best_%.0f.dat" % m_reward)))
             if best_m_reward is not None:
                 print("Best reward updated %.3f -> %.3f" % (
                     best_m_reward, m_reward))
