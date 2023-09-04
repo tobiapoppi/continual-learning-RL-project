@@ -4,6 +4,17 @@ import gym.spaces
 import numpy as np
 import collections
 
+
+def make_env(env_name):
+    env = gym.make(env_name, render_mode='human')
+    env = MaxAndSkipEnv(env)
+    env = FireResetEnv(env)
+    env = ProcessFrame84(env)
+    env = ImageToPyTorch(env)
+    env = BufferWrapper(env, 4)
+    return ScaledFloatFrame(env)
+
+
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env=None):
         """For environments where the user need to press FIRE for the game to start."""
@@ -29,8 +40,7 @@ class MaxAndSkipEnv(gym.Wrapper):
     def __init__(self, env=None, skip=4):
         """Return only every `skip`-th frame"""
         super(MaxAndSkipEnv, self).__init__(env)
-        # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = collections.deque(maxlen=2)
+        self._obs_buffer = collections.deque(maxlen=2)  # most recent raw observations
         self._skip = skip
 
     def step(self, action):
@@ -46,7 +56,6 @@ class MaxAndSkipEnv(gym.Wrapper):
         return max_frame, total_reward, done, info
 
     def reset(self):
-        """Clear past frame buffer and init. to first obs. from inner env."""
         self._obs_buffer.clear()
         obs = self.env.reset()
         self._obs_buffer.append(obs)
@@ -64,18 +73,15 @@ class ProcessFrame84(gym.ObservationWrapper):
 
     @staticmethod
     def process(frame):
-        if frame.size == 210 * 160 * 3:
-            img = np.reshape(frame, [210, 160, 3]).astype(
-                np.float32)
-        elif frame.size == 250 * 160 * 3:
-            img = np.reshape(frame, [250, 160, 3]).astype(
-                np.float32)
+        # Convert frame
+        if frame.size in [210 * 160 * 3, 250 * 160 * 3]:
+            shape = (210, 160, 3) if frame.size == 210 * 160 * 3 else (250, 160, 3)
+            img = np.reshape(frame, shape).astype(np.float32)
         else:
             assert False, "Unknown resolution."
-        img = img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + \
-              img[:, :, 2] * 0.114
-        resized_screen = cv2.resize(
-            img, (84, 110), interpolation=cv2.INTER_AREA)
+
+        img = img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + img[:, :, 2] * 0.114
+        resized_screen = cv2.resize(img, (84, 110), interpolation=cv2.INTER_AREA)
         x_t = resized_screen[18:102, :]
         x_t = np.reshape(x_t, [84, 84, 1])
         return x_t.astype(np.uint8)
@@ -116,13 +122,3 @@ class BufferWrapper(gym.ObservationWrapper):
         self.buffer[:-1] = self.buffer[1:]
         self.buffer[-1] = observation
         return self.buffer
-    
-def make_env(env_name):
-    env = gym.make(env_name, render_mode='human')
-    env = MaxAndSkipEnv(env)
-    env = FireResetEnv(env)
-    env = ProcessFrame84(env)
-    env = ImageToPyTorch(env)
-    env = BufferWrapper(env, 4)
-    return ScaledFloatFrame(env)
-

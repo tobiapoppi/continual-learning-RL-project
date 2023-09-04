@@ -7,7 +7,7 @@ import gym.spaces
 import collections
 import time
 import argparse
-import wrappers
+import wrappers_dqn
 import dqn
 
 FPS = 25
@@ -26,7 +26,7 @@ if __name__ == "__main__":
                         action='store_false')
     args = parser.parse_args()
 
-    env = wrappers.make_env(args.env)
+    env = wrappers_dqn.make_env(args.env)
     if args.record:
         env = gym.wrappers.Monitor(env, args.record, force=True)
     net = dqn.DQN(env.observation_space.shape,

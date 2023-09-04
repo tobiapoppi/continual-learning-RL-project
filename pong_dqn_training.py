@@ -1,7 +1,7 @@
 import time 
 import numpy as np
 import collections
-import wrappers
+import wrappers_dqn
 import dqn
 import os
 import torch
@@ -10,21 +10,22 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 import gym
 
-DEFAULT_ENV_NAME = "SpaceInvadersNoFrameskip-v4"
+DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
 # Max mean reward to reach
-MEAN_REWARD_BOUND = 30
 
 # gamma value for discount
-GAMMA = 0.9
 # batch size sample for replay buffer
-BATCH_SIZE = 32 
 # max replay buffer size
-REPLAY_SIZE = 10000
 # learning rate
-LEARNING_RATE = 1e-5
 # how frequent we link model weights
-SYNC_TARGET_FRAMES = 1000
 # steps after which replay buffer start populating
+
+MEAN_REWARD_BOUND = 21
+GAMMA = 0.9
+BATCH_SIZE = 32 
+REPLAY_SIZE = 10000
+LEARNING_RATE = 1e-5
+SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
 
 # no. of frames for the random actions
@@ -128,14 +129,14 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-env = wrappers.make_env("SpaceInvadersNoFrameskip-v4")
+env = wrappers_dqn.make_env("PongNoFrameskip-v4")
 #env = gym.wrappers.Monitor(env, director="PongNoFrameskip-v4", force=True)
 
 net = dqn.DQN(env.observation_space.shape,
                     env.action_space.n).to(device)
 tgt_net = dqn.DQN(env.observation_space.shape,
                         env.action_space.n).to(device)
-writer = SummaryWriter(comment="-SpaceInvadersNoFrameskip-v4")
+writer = SummaryWriter(comment="-PongNoFrameskip-v4")
 print(net)
 
 
@@ -174,9 +175,9 @@ while True:
         writer.add_scalar("reward", reward, frame_idx)
         if best_m_reward is None or best_m_reward < m_reward:
             torch.save(net.state_dict(), os.path.join(
-                "SpaceInvadersNoFrameskip_state", ("SpaceInvadersNoFrameskip-v4-best_%.0f.dat" % m_reward)))
+                "PongNoFrameskip-v4-state", ("PongNoFrameskip-v4_%.0f.dat" % m_reward)))
             if best_m_reward is not None:
-                print("Best reward updated %.3f -> %.3f" % (
+                print("New Best reward! %.3f -> %.3f" % (
                     best_m_reward, m_reward))
             best_m_reward = m_reward
         if m_reward > MEAN_REWARD_BOUND:
